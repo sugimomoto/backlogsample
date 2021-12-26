@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.Properties;
 
 import com.nulabinc.backlog4j.*;
+import com.nulabinc.backlog4j.api.option.CreateIssueParams;
 import com.nulabinc.backlog4j.conf.*;
 
 import org.junit.Test;
@@ -27,7 +28,9 @@ public class AppTest
     private String apikey;
     private String spaceId;
 
-    public AppTest(){
+    BacklogClient client;
+
+    public AppTest() throws MalformedURLException{
         Path path = Paths.get("backlog.properties");
 
         try(BufferedReader reader = Files.newBufferedReader(path,StandardCharsets.UTF_8)){
@@ -37,10 +40,14 @@ public class AppTest
             apikey = properties.getProperty("apikey");
             spaceId = properties.getProperty("spaceid");
 
-
         }catch(IOException ex){
             System.out.println(ex);
         }
+
+        BacklogConfigure configure = new BacklogComConfigure(spaceId).apiKey(apikey);
+
+        client = new BacklogClientFactory(configure).newClient();
+
     }
 
     /**
@@ -54,14 +61,23 @@ public class AppTest
 
     @Test
     public void getProjectTest() throws MalformedURLException{
-        BacklogConfigure configure = new BacklogComConfigure(spaceId).apiKey(apikey);
-
-        BacklogClient client = new BacklogClientFactory(configure).newClient();
         
         ResponseList<Project> projects = client.getProjects();
 
         assertEquals(1, projects.size());
         assertEquals("apiupdatecheck", projects.get(0).getName());
+        
+    }
+
+    @Test
+    public void createIssueTest(){
+
+        
+        CreateIssueParams issue = new CreateIssueParams(245615, "HelloBacklog4J", 1199017, Issue.PriorityType.High);
+        Issue result = client.createIssue(issue);
+
+        System.out.println(result.getId());
+
 
     }
 }
